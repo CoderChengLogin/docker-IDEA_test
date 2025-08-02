@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.docker_test.web;
+package com.example.docker_test.web.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;

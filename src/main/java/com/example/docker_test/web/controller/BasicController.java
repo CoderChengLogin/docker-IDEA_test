@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.example.docker_test.web;
+package com.example.docker_test.web.controller;
 
+import com.example.docker_test.web.entity.User;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
