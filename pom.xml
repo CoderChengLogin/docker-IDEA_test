@@ -9,6 +9,7 @@
     <description>docker_test</description>
     <properties>
         <java.version>1.8</java.version>
+        <!-- 统一所有资源的编码为 UTF-8 -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <spring-boot.version>2.7.5</spring-boot.version>
@@ -42,89 +43,53 @@
     </dependencyManagement>
 
     <build>
+        <finalName>${project.name}</finalName>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                    <encoding>UTF-8</encoding>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${spring-boot.version}</version>
+                <version>${spring-boot.version}</version> <!-- 添加版本号 -->
                 <configuration>
+                    <!-- 指定主类（替换为你实际的主类全路径） -->
                     <mainClass>com.example.docker_test.DockerTestApplication</mainClass>
-<!--                    <skip>true</skip>-->
-                    <!-- 将上面skip标签注释掉或删掉，添加如下includeSystemScope标签 -->
-                    <includeSystemScope>true</includeSystemScope>
+                    <layout>JAR</layout>
                 </configuration>
                 <executions>
                     <execution>
-                        <id>repackage</id>
                         <goals>
+                            <!-- 关键：将普通 JAR 转换为 Spring Boot 可执行 JAR -->
                             <goal>repackage</goal>
                         </goals>
                     </execution>
                 </executions>
             </plugin>
 
-            <!--在<plugins>标签内添加docker-maven-plugin插件-->
             <plugin>
-                <groupId>com.spotify</groupId>
+                <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
-                <version>1.0.0</version>
-
-                <!-- 将插件绑定在某个phase执行 -->
+                <version>0.40.2</version>
+                <configuration>
+                    <dockerHost>tcp://192.168.1.152:2375</dockerHost>
+                    <images>
+                        <image>
+                            <!--    指定生成的IMAGE 叫什么名字 一般是 名字:版本号     -->
+                            <name>${project.build.finalName}:v2</name>
+                            <build>
+                                <dockerFileDir>${project.basedir}</dockerFileDir>
+                            </build>
+                        </image>
+                    </images>
+                </configuration>
                 <executions>
                     <execution>
-                        <id>build-image</id>
-                        <!-- 插件与package命令绑定。即执行mvn package命令，则自动执行mvn docker:build命令 -->
+                        <id>build</id>
                         <phase>package</phase>
                         <goals>
                             <goal>build</goal>
                         </goals>
                     </execution>
                 </executions>
-
-                <configuration>
-                    <!-- 指定镜像名,这里为项目名 -->
-                    <imageName>${project.artifactId}</imageName>
-                    <!-- 指定镜像版本，默认版本为latest -->
-                    <imageTags>
-                        <imageTag>latest</imageTag>
-                    </imageTags>
-                    <!-- 指定Dockerfile文件路径 -->
-                    <dockerDirectory>${project.basedir}</dockerDirectory>
-
-                    <!-- 指定Docker服务端地址 -->
-                    <dockerHost>http://192.168.248.144:2375</dockerHost>
-
-                    <!-- 这里是复制 jar 包到 docker 容器指定目录配置 -->
-                    <resources>
-                        <resource>
-                            <targetPath>/</targetPath>
-                            <!-- jar包路径，这里为项目中target目录 -->
-                            <directory>${project.build.directory}</directory>
-                            <!-- 需要包含的 jar包 ，这里对应的是 Dockerfile中添加的文件名 -->
-                            <include>${project.build.finalName}.jar</include>
-                        </resource>
-                    </resources>
-                </configuration>
-                <dependencies>
-                    <!-- javax.activation从jdk11已被移除掉，本项目依赖JDK14，所以需要额外引入activation依赖，否则执行命令时提示找不到javax.activation.DataSource -->
-                    <dependency>
-                        <groupId>javax.activation</groupId>
-                        <artifactId>activation</artifactId>
-                        <version>1.1.1</version>
-                    </dependency>
-                </dependencies>
             </plugin>
-
 
         </plugins>
     </build>
